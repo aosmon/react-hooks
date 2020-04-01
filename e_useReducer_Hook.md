@@ -597,3 +597,80 @@ Summary
 useState and useReducer both allow you to add state to function components. useReducer offers a bit more flexibility since it allows you to decouple how the state is updated from the action that triggered the update - typically leading to more declarative state updates.
 
 If different pieces of state update independently from one another (hovering, selected, etc.), useState should work fine. If your state tends to be updated together or if updating one piece of state is based on another piece of state, go with useReducer.
+
+```
+import React from "react";
+import ReactDOM from "react-dom";
+import Slider from './Slider'
+import "./styles.css";
+
+function reducer(state, action) {
+  if (action.type === 'increment') {
+    return {
+      count: state.count + state.step,
+      step: state.step,
+    }
+  } else if (action.type === 'decrement') {
+    return {
+      count: state.count - state.step,
+      step: state.step,
+    }
+  } else if (action.type === 'reset') {
+    return {
+      count: 0,
+      step: state.step,
+    }
+  } else if (action.type === 'updateStep') {
+    return {
+      count: state.count,
+      step: action.step,
+    }
+  } else {
+    throw new Error()
+  }
+}
+
+function Counter() {
+  const [state, dispatch] = React.useReducer(
+    reducer,
+    { count: 0, step: 1 }
+  )
+
+  React.useEffect(() => {
+    const id = window.setInterval(() => {
+      dispatch({ type: 'increment' })
+    }, 1000)
+
+    return () => window.clearInterval(id)
+  }, [])
+
+  return (
+    <React.Fragment>
+      <Slider onChange={(value) => dispatch({
+        type: 'updateStep',
+        step: value
+      })} />
+      <hr />
+      <h1>{state.count}</h1>
+      <button onClick={() => dispatch({
+        type: 'increment',
+      })}>
+        +
+      </button>
+      <button onClick={() => dispatch({
+        type: 'decrement'
+      })}>
+        -
+      </button>
+      <button onClick={() => dispatch({
+        type: 'reset'
+      })}>
+        Reset
+      </button>
+    </React.Fragment>
+  )
+}
+
+const rootElement = document.getElementById("root");
+ReactDOM.render(<Counter />, rootElement);
+```
